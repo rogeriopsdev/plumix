@@ -1,0 +1,19 @@
+{% extends "plumix/base.html" %}
+{% block content %}
+<div class="container-fluid">
+
+    <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success">Salvar</button>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

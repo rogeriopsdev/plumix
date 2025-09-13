@@ -1,0 +1,20 @@
+{% extends "plumix/base.html" %}
+{% block content %}
+<div class="container-fluid">
+
+    <h1 class="h3 mb-4 text-gray-800">{{ title }}</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <p>Tem certeza que deseja excluir <strong>{{ object }}</strong>?</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sim, excluir</button>
+                <a href="{{ cancel_url }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

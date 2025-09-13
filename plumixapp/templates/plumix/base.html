@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>{% block title %}Plumix - Dashboard{% endblock %}</title>
+
+  <!-- Fonts & CSS -->
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+  <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body id="page-top">
+
+<div id="wrapper">
+  <!-- Sidebar -->
+  <ul class="navbar-nav bg-gradient-dark sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'index' %}">
+      <div class="sidebar-brand-icon rotate-n-30">
+        <i><img src="{% static 'img/plumix3.png' %}" alt="plumix" class="small"></i>
+      </div>
+      <div class="sidebar-brand-text mx-3"><sup>1.0</sup></div>
+    </a>
+
+    <hr class="sidebar-divider my-0">
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'index' %}">
+        <i class="fas fa-fw fa-tachometer-alt"></i> <span>Dashboard</span>
+      </a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Cadastros</div>
+
+    <li class="nav-item"><a class="nav-link" href="{% url 'granja_list' %}"><i class="fas fa-warehouse"></i> <span>Granjas</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'galpao_list' %}"><i class="fas fa-home"></i> <span>Galpões</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'lote_list' %}"><i class="fas fa-layer-group"></i> <span>Lotes</span></a></li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Produção</div>
+
+    <li class="nav-item"><a class="nav-link" href="{% url 'ambiente_list' %}"><i class="fas fa-thermometer-half"></i> <span>Ambiente</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'racao_list' %}"><i class="fas fa-drumstick-bite"></i> <span>Ração</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'agua_list' %}"><i class="fas fa-tint"></i> <span>Água</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'mortalidade_list' %}"><i class="fas fa-skull-crossbones"></i> <span>Mortalidade</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'pesagem_list' %}"><i class="fas fa-weight"></i> <span>Pesagem</span></a></li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Saúde</div>
+
+    <li class="nav-item"><a class="nav-link" href="{% url 'tratamento_list' %}"><i class="fas fa-prescription-bottle-alt"></i> <span>Tratamentos</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'vacinacao_list' %}"><i class="fas fa-syringe"></i> <span>Vacinação</span></a></li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Monitoramento</div>
+
+    <li class="nav-item"><a class="nav-link" href="{% url 'evento_list' %}"><i class="fas fa-calendar-alt"></i> <span>Eventos</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'alerta_list' %}"><i class="fas fa-exclamation-triangle"></i> <span>Alertas</span></a></li>
+
+    <hr class="sidebar-divider d-none d-md-block">
+    <div class="text-center d-none d-md-inline">
+      <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+  </ul>
+  <!-- /Sidebar -->
+
+  <!-- Content Wrapper -->
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <!-- Topbar -->
+      <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3"><i class="fa fa-bars"></i></button>
+
+        <!-- Busca (opcional) -->
+        <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+          <div class="input-group">
+            <input type="text" class="form-control bg-light border-0 small" placeholder="Pesquisar..." aria-label="Search">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button"><i class="fas fa-search fa-sm"></i></button>
+            </div>
+          </div>
+        </form>
+
+        <ul class="navbar-nav ml-auto">
+          <div class="topbar-divider d-none d-sm-block"></div>
+          <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+              <span class="mr-2 d-none d-lg-inline text-gray-600 small">Usuário</span>
+              <img class="img-profile rounded-circle" src="{% static 'img/undraw_profile.svg' %}">
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+              <a class="dropdown-item" href="#"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i> Profile</a>
+              <a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i> Settings</a>
+              <div class="dropdown-divider"></div>
+              {% if request.user.is_authenticated %}
+              <form action="{% url 'logout' %}" method="post" class="m-0 p-0">{% csrf_token %}
+                <button class="dropdown-item" type="submit">
+                  <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> Logout
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <!-- /Topbar -->
+
+      <!-- Page Content -->
+      <div class="container-fluid">
+        {% block content %}{% endblock %}
+      </div>
+      <!-- /Page Content -->
+    </div>
+
+    <!-- Footer -->
+    <footer class="sticky-footer bg-white">
+      <div class="container my-auto">
+        <div class="copyright text-center my-auto">
+          <span>Copyright &copy; Plumix 2025</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+<!-- JS -->
+<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+<script src="{% static 'js/sb-admin-2.min.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
