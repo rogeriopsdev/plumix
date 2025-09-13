@@ -88,16 +88,10 @@ WSGI_APPLICATION = "plumix.wsgi.application"
 # Railway injeta DATABASE_URL quando você adiciona o plugin Postgres.
 # Ex.: postgresql://usuario:senha@host:5432/dbname
 DATABASES = {
-    "default": dj_database_url.config(
-        env="postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@postgres.railway.internal:5432/railway",
-        # fallback local (se DATABASE_URL não existir):
-        default=(
-            f"postgresql://{os.getenv('PGUSER', 'postgres')}:"
-            f"{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', 'postgres.railway.internal')}:"
-            f"{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'plumix')}"
-        ),
-        conn_max_age=600,           # pooling
-        ssl_require=not DEBUG,      # SSL em produção
+    'default': dj_database_url.config(
+       default='postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@postgres.railway.internal:5432/railway',
+        conn_max_age=600,
+       ssl_require=True
     )
 }
 
