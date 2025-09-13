@@ -17,12 +17,17 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 # --- Básico / Ambiente ---
 DEBUG = os.getenv("DEBUG", "0") == "1"
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")  # defina no Railway!
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")  # use "*" na Railway ou seu domínio
+ALLOWED_HOSTS =[
+    'plumix-production.up.railway.app',
+    'localhost',
+    '127.0.0.1'
+
+]
 
 # Confie no domínio da Railway (adicione seu domínio custom se tiver)
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.railway.app",
-    # "https://seu-dominio.com",
+    "https://plumix-production.up.railway.app",
+    #"https://seu-dominio.com",
 ]
 
 # --- Apps ---
