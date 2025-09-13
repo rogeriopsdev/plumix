@@ -84,7 +84,7 @@ WSGI_APPLICATION = "plumix.wsgi.application"
 # Ex.: postgresql://usuario:senha@host:5432/dbname
 DATABASES = {
     "default": dj_database_url.config(
-        env="DATABASE_URL",
+        env="postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@postgres.railway.internal:5432/railway",
         # fallback local (se DATABASE_URL não existir):
         default=(
             f"postgresql://{os.getenv('PGUSER', 'postgres')}:"
