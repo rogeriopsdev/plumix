@@ -1,0 +1,21 @@
+{% extends "avadoc/base.html" %}
+{% load crispy_forms_tags %}
+{% block corpo %}
+    <div class="row">
+
+        <div class="col-4">
+
+        </div>
+        <div style="margin-top: 30px;font-size: x-small" class="col-4">
+            <form action="" method="POST">
+                {% csrf_token %}
+                {{ form|crispy }}
+                 <input type="submit" value="Criar Conta" class="btn btn-primary">
+            </form>
+
+        </div>
+        <div class="col-4">
+
+        </div>
+    </div>
+{% endblock corpo %}
