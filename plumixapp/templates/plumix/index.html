@@ -6,41 +6,91 @@
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-3">
   <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  <div class="btn-group">
+
+    {% if user.is_staff or not user.is_authenticated %}
+      <a href="{% url 'criar_usuario' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-user-plus"></i> Criar usuário</a>
+    {% endif %}
+
+  <a href="{% url 'dashboard_export_csv' %}?{% if use_custom_range %}start={{ start }}&end={{ end }}{% else %}dias={{ periodo_dias }}{% endif %}{% if granja_selected %}&granja={{ granja_selected.pk }}{% endif %}{% if galpao_selected %}&galpao={{ galpao_selected.pk }}{% endif %}{% if lote_selected %}&lote={{ lote_selected.pk }}{% endif %}"
+     class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+    <i class="fas fa-download fa-sm text-white-50"></i> Exportar CSV
+  </a>
+  </div>
 </div>
 
 <!-- Filtros -->
-<form method="get" class="row g-2 align-items-end mb-4">
-  <div class="col-sm-3">
-    <label class="form-label mb-1">Período (dias)</label>
+<form method="get" class="row g-3 align-items-end mb-4">
+  <div class="col-sm-2">
+    <label class="form-label mb-1">Período rápido</label>
     <select name="dias" class="form-control">
       {% for d in periodos %}
-        <option value="{{ d }}" {% if d == periodo_dias %}selected{% endif %}>{{ d }} dias</option>
+        <option value="{{ d }}" {% if d == periodo_dias and not use_custom_range %}selected{% endif %}>{{ d }} dias</option>
+      {% endfor %}
+    </select>
+    <small class="text-muted">Ou use intervalo abaixo</small>
+  </div>
+
+  <div class="col-sm-3">
+    <label class="form-label mb-1">Início</label>
+    <input type="date" name="start" value="{{ start }}" class="form-control">
+  </div>
+  <div class="col-sm-3">
+    <label class="form-label mb-1">Fim</label>
+    <input type="date" name="end" value="{{ end }}" class="form-control">
+  </div>
+
+  <div class="col-sm-4"></div>
+
+  <div class="col-sm-3">
+    <label class="form-label mb-1">Granja</label>
+    <select name="granja" class="form-control">
+      <option value="">Todas</option>
+      {% for g in granjas %}
+        <option value="{{ g.pk }}" {% if granja_selected and granja_selected.pk == g.pk %}selected{% endif %}>{{ g.nome_granja }}</option>
       {% endfor %}
     </select>
   </div>
+  {% if not user.is_authenticated %}
+  <div class="alert alert-warning">
+    Você precisa estar logado para registrar dados no sistema.
+    <a class="alert-link" href="{% url 'login' %}">Entrar</a>
 
-  <div class="col-sm-5">
-    <label class="form-label mb-1">Lote</label>
-    <select name="lote" class="form-control">
-      <option value="" {% if not lote_selected %}selected{% endif %}>Todos os lotes</option>
-      {% for l in lotes %}
-        <option value="{{ l.pk }}" {% if lote_selected and lote_selected.pk == l.pk %}selected{% endif %}>
-          {{ l.nome_lote }}
-        </option>
+  </div>
+{% endif %}
+
+  <div class="col-sm-3">
+    <label class="form-label mb-1">Galpão</label>
+    <select name="galpao" class="form-control">
+      <option value="">Todos</option>
+      {% for gp in galpoes %}
+        <option value="{{ gp.pk }}" {% if galpao_selected and galpao_selected.pk == gp.pk %}selected{% endif %}>{{ gp.nome_galpao }}</option>
       {% endfor %}
     </select>
   </div>
 
   <div class="col-sm-4">
-    <button class="btn btn-primary">Aplicar filtros</button>
+    <label class="form-label mb-1">Lote</label>
+    <select name="lote" class="form-control">
+      <option value="">Todos</option>
+      {% for l in lotes %}
+        <option value="{{ l.pk }}" {% if lote_selected and lote_selected.pk == l.pk %}selected{% endif %}>{{ l.nome_lote }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-sm-2 d-flex gap-2">
+    <button class="btn btn-primary w-100">Aplicar</button>
     {% if request.GET %}
-      <a href="{% url 'index' %}" class="btn btn-outline-secondary">Limpar</a>
+      <a href="{% url 'index' %}" class="btn btn-outline-secondary w-100">Limpar</a>
     {% endif %}
   </div>
 </form>
 
 <!-- Row: KPI Cards -->
 <div class="row">
+
   <div class="col-xl-3 col-md-6 mb-4">
     <div class="card border-left-success shadow h-100 py-2">
       <div class="card-body">
@@ -55,15 +105,26 @@
     </div>
   </div>
 
+  <!-- Mortalidade com tendência -->
   <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-danger shadow h-100 py-2">
+    <div class="card {{ mortal_card_class }} shadow h-100 py-2">
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-              Mortalidade ({{ periodo_dias }} dias{% if lote_selected %}, {{ lote_selected.nome_lote }}{% endif %})
+            <div class="text-xs font-weight-bold text-uppercase mb-1 {% if mortal_card_class == 'border-left-danger' %}text-danger{% else %}text-success{% endif %}">
+              Mortalidade (período)
             </div>
             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ mortal_30d }}</div>
+            <div class="small {% if mortal_diff > 0 %}text-danger{% elif mortal_diff < 0 %}text-success{% else %}text-muted{% endif %}">
+              {% if mortal_diff > 0 %}
+                <i class="fas fa-caret-up"></i>
+              {% elif mortal_diff < 0 %}
+                <i class="fas fa-caret-down"></i>
+              {% else %}
+                <i class="fas fa-minus"></i>
+              {% endif %}
+              {{ mortal_diff }} ({{ mortal_pct }}%)
+            </div>
           </div>
           <div class="col-auto"><i class="fas fa-skull-crossbones fa-2x text-gray-300"></i></div>
         </div>
@@ -76,9 +137,7 @@
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-              Ração ({{ periodo_dias }} dias{% if lote_selected %}, {{ lote_selected.nome_lote }}{% endif %})
-            </div>
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Ração (período)</div>
             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ racao_30d|floatformat:2 }} kg</div>
           </div>
           <div class="col-auto"><i class="fas fa-drumstick-bite fa-2x text-gray-300"></i></div>
@@ -92,9 +151,7 @@
       <div class="card-body">
         <div class="row no-gutters align-items-center">
           <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-              Água ({{ periodo_dias }} dias{% if lote_selected %}, {{ lote_selected.nome_lote }}{% endif %})
-            </div>
+            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Água (período)</div>
             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ agua_30d|floatformat:2 }} L</div>
           </div>
           <div class="col-auto"><i class="fas fa-tint fa-2x text-gray-300"></i></div>
@@ -102,9 +159,12 @@
       </div>
     </div>
   </div>
+
 </div>
 
+<!-- Charts Row -->
 <div class="row">
+
   <!-- Peso x Idade -->
   <div class="col-xl-8 col-lg-7">
     <div class="card shadow mb-4">
@@ -113,8 +173,11 @@
           Peso Médio x Idade
           {% if lote_ref %}<small class="text-muted"> (Lote: {{ lote_ref.nome_lote }})</small>{% endif %}
         </h6>
+        <button class="btn btn-sm btn-outline-secondary" onclick="downloadChart('pesoIdadeChart','peso_idade')">Baixar PNG</button>
       </div>
-      <div class="card-body"><div class="chart-area"><canvas id="pesoIdadeChart"></canvas></div></div>
+      <div class="card-body">
+        <div class="chart-area"><canvas id="pesoIdadeChart"></canvas></div>
+      </div>
     </div>
   </div>
 
@@ -122,48 +185,74 @@
   <div class="col-xl-4 col-lg-5">
     <div class="card shadow mb-4">
       <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">Mortalidade por Causa ({{ periodo_dias }} dias)</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Mortalidade por Causa</h6>
+        <button class="btn btn-sm btn-outline-secondary" onclick="downloadChart('mortalPieChart','mortalidade_causas')">Baixar PNG</button>
       </div>
       <div class="card-body">
         <div class="chart-pie pt-4 pb-2"><canvas id="mortalPieChart"></canvas></div>
         {% if not mort_labels %}
-          <div class="mt-2 text-center small text-muted">Sem dados no período selecionado.</div>
+          <div class="mt-2 text-center small text-muted">Sem dados no período.</div>
         {% endif %}
       </div>
     </div>
   </div>
+
 </div>
+
+<!-- Consumo Diário -->
 <div class="row">
   <div class="col-12">
     <div class="card shadow mb-4">
       <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">
-          Consumo Diário — Ração (kg) x Água (L)
-          <small class="text-muted">({{ periodo_dias }} dias{% if lote_selected %}, {{ lote_selected.nome_lote }}{% endif %})</small>
-        </h6>
+        <div>
+          <h6 class="m-0 font-weight-bold text-primary">Consumo Diário — Ração (kg) x Água (L)</h6>
+          <div class="form-check form-check-inline mt-2">
+            <input class="form-check-input" type="checkbox" id="toggleMM7" checked>
+            <label class="form-check-label" for="toggleMM7">Mostrar média móvel (7d)</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="toggleStacked">
+            <label class="form-check-label" for="toggleStacked">Empilhar barras</label>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="downloadChart('consumoBarChart','consumo_diario')">Baixar PNG</button>
       </div>
       <div class="card-body">
-        <div style="height:320px">
-          <canvas id="consumoBarChart"></canvas>
-        </div>
+        <div style="height:360px"><canvas id="consumoBarChart"></canvas></div>
       </div>
     </div>
   </div>
 </div>
-
-
-
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
 <script>
+  // --- util: baixar PNG ---
+  function downloadChart(canvasId, filename) {
+    const link = document.createElement('a');
+    link.download = filename + '.png';
+    link.href = document.getElementById(canvasId).toDataURL('image/png', 1.0);
+    link.click();
+  }
+
+  // Dados vindos do contexto
   const pesoIdadeLabels = {{ peso_idade_labels|safe }};
   const pesoIdadeValues = {{ peso_idade_values|safe }};
   const mortLabels = {{ mort_labels|safe }};
   const mortValues = {{ mort_values|safe }};
+  const dailyLabels = {{ daily_labels|safe }};
+  const racaoDaily = {{ racao_daily_values|safe }};
+  const aguaDaily  = {{ agua_daily_values|safe }};
 
-  // --- Line: Peso x Idade (mantém igual) ---
+  // --- util: cor estável por texto (pie) ---
+  function hashHue(str){
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = (h<<5) - h + str.charCodeAt(i); h |= 0; }
+    return (h % 360 + 360) % 360;
+  }
+
+  // Line: Peso x Idade
   (function(){
     const ctx = document.getElementById('pesoIdadeChart').getContext('2d');
     new Chart(ctx, {
@@ -179,113 +268,93 @@
     });
   })();
 
-  // --- Util: gera cor estável a partir do texto ---
-  function hashHue(str){
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-      h = (h << 5) - h + str.charCodeAt(i);
-      h |= 0; // 32-bit
-    }
-    return (h % 360 + 360) % 360; // 0..359
-  }
-
-  // --- Pie: Mortalidade por Causa (com cores por causa) ---
+  // Pie: Mortalidade por Causa (cores por causa)
   (function(){
     const ctx = document.getElementById('mortalPieChart').getContext('2d');
-
     const mortBackground = mortLabels.map(lbl => `hsl(${hashHue(lbl)}, 70%, 55%)`);
     const mortBorder     = mortLabels.map(lbl => `hsl(${hashHue(lbl)}, 70%, 35%)`);
-
     new Chart(ctx, {
       type: 'pie',
-      data: {
-        labels: mortLabels,
-        datasets: [{
-          data: mortValues,
-          backgroundColor: mortBackground,
-          borderColor: mortBorder,
-          borderWidth: 1
-        }]
-      },
+      data: { labels: mortLabels, datasets: [{ data: mortValues, backgroundColor: mortBackground, borderColor: mortBorder, borderWidth: 1 }] },
       options: {
         maintainAspectRatio: false,
         plugins: {
           legend: { position: 'bottom' },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
-                const total = ctx.dataset.data.reduce((a, b) => a + b, 0) || 1;
-                const val = ctx.parsed || 0;
-                const pct = (val * 100 / total).toFixed(1);
-                return `${ctx.label}: ${val} (${pct}%)`;
-              }
+          tooltip: { callbacks: {
+            label: (c) => {
+              const total = c.dataset.data.reduce((a,b)=>a+b,0) || 1;
+              const v = c.parsed || 0;
+              const pct = (v*100/total).toFixed(1);
+              return `${c.label}: ${v} (${pct}%)`;
             }
-          }
+          } }
         }
       }
     });
   })();
-</script>
 
-<script>
-  const dailyLabels = {{ daily_labels|safe }};
-  const racaoDaily = {{ racao_daily_values|safe }};
-  const aguaDaily  = {{ agua_daily_values|safe }};
+  // --- util: média móvel ---
+  function movingAverage(arr, win = 7) {
+    const out = [];
+    for (let i = 0; i < arr.length; i++) {
+      const start = Math.max(0, i - win + 1);
+      const slice = arr.slice(start, i + 1);
+      const sum = slice.reduce((a, b) => a + (Number(b) || 0), 0);
+      out.push(sum / slice.length);
+    }
+    return out;
+  }
 
+  // Bar: Consumo Diário (cores diferentes + MM7 + toggles)
   (function(){
     const ctx = document.getElementById('consumoBarChart').getContext('2d');
 
-    // cores consistentes (HSL) p/ cada dataset
-    const racaoBg   = 'hsl(28, 90%, 55%)';  // laranja quente
+    const racaoBg   = 'hsl(28, 90%, 55%)';
     const racaoBord = 'hsl(28, 90%, 40%)';
-    const aguaBg    = 'hsl(205, 80%, 55%)'; // azul
+    const aguaBg    = 'hsl(205, 80%, 55%)';
     const aguaBord  = 'hsl(205, 80%, 40%)';
 
-    new Chart(ctx, {
+    const racaoMM7 = movingAverage(racaoDaily, 7);
+    const aguaMM7  = movingAverage(aguaDaily, 7);
+
+    window.consumoChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: dailyLabels,
         datasets: [
-          {
-            label: 'Ração (kg)',
-            data: racaoDaily,
-            backgroundColor: racaoBg,
-            borderColor: racaoBord,
-            borderWidth: 1,
-            order: 1,
-            categoryPercentage: 0.6,
-            barPercentage: 0.9
-          },
-          {
-            label: 'Água (L)',
-            data: aguaDaily,
-            backgroundColor: aguaBg,
-            borderColor: aguaBord,
-            borderWidth: 1,
-            order: 2,
-            categoryPercentage: 0.6,
-            barPercentage: 0.9
-          }
+          { label: 'Ração (kg)', data: racaoDaily, backgroundColor: racaoBg, borderColor: racaoBord, borderWidth: 1, order: 1, categoryPercentage: 0.6, barPercentage: 0.9 },
+          { label: 'Água (L)',   data: aguaDaily,  backgroundColor: aguaBg,  borderColor: aguaBord,  borderWidth: 1, order: 1, categoryPercentage: 0.6, barPercentage: 0.9 },
+          { label: 'Ração MM7', data: racaoMM7, type: 'line', borderColor: racaoBord, backgroundColor: 'transparent', borderWidth: 2, fill: false, borderDash: [6,4], pointRadius: 0, order: 0, hidden: false },
+          { label: 'Água MM7',  data: aguaMM7,  type: 'line', borderColor: aguaBord,  backgroundColor: 'transparent', borderWidth: 2, fill: false, borderDash: [6,4], pointRadius: 0, order: 0, hidden: false },
         ]
       },
       options: {
         maintainAspectRatio: false,
         plugins: {
           legend: { position: 'bottom' },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('pt-BR')}`
-            }
-          }
+          tooltip: { callbacks: {
+            label: (c) => `${c.dataset.label}: ${Number(c.parsed.y ?? c.parsed).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}`
+          } }
         },
-        scales: {
-          x: { stacked: false },
-          y: { beginAtZero: true }
-        }
+        scales: { x: { stacked: false }, y: { beginAtZero: true, stacked: false } }
       }
+    });
+
+    // Toggle MM7
+    document.getElementById('toggleMM7').addEventListener('change', (e) => {
+      const show = e.target.checked;
+      consumoChart.data.datasets[2].hidden = !show;
+      consumoChart.data.datasets[3].hidden = !show;
+      consumoChart.update();
+    });
+
+    // Toggle empilhado
+    document.getElementById('toggleStacked').addEventListener('change', (e) => {
+      const stacked = e.target.checked;
+      consumoChart.options.scales.x.stacked = stacked;
+      consumoChart.options.scales.y.stacked = stacked;
+      consumoChart.update();
     });
   })();
 </script>
-
-
 {% endblock %}

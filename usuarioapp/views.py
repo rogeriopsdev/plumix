@@ -1,20 +1,15 @@
+from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
-from .forms import UsuarioForm
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.decorators import login_required
 
-
-from django.contrib.auth.forms import AuthenticationForm
-
-# Create your views here.
 def criar_usuario(request):
-    form = UsuarioForm(request.POST)
-    if request.method=="POST":
-        form = UsuarioForm(request.POST, request.FILES)
-        if  form.is_valid():
-            obj=form.save()
-            obj.save()
-            return redirect('login')
-    return render(request, 'usuarios/usuario.html',{'form':form})
-
-
-
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Usuário criado com sucesso. Faça login para continuar.")
+            return redirect("login")
+    else:
+        form = UserCreationForm()
+    return render(request, "usuarios/usuario.html", {"form": form})
