@@ -88,7 +88,7 @@ DATABASES = {
         # fallback local (se DATABASE_URL não existir):
         default=(
             f"postgresql://{os.getenv('PGUSER', 'postgres')}:"
-            f"{os.getenv('PGPASSWORD', 'TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ')}@{os.getenv('PGHOST', 'postgres.railway.internal')}:"
+            f"{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', 'postgres.railway.internal')}:"
             f"{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'plumix')}"
         ),
         conn_max_age=600,           # pooling
