@@ -13,13 +13,23 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 # --- Ambiente / Segurança ---
 DEBUG = os.getenv("DEBUG", "0") == "1"
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")  # defina no painel da Railway!
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")  # use "*" ou seu(s) domínio(s)
+ALLOWED_HOSTS = [
+    "plumix-production.up.railway.app",
+    'localhost',
+    '127.0.0.1'
+    #"plumix.seu-dominio.com",  # se tiver
+] # use "*" ou seu(s) domínio(s)
 
 # Confiança para CSRF no domínio da Railway (adicione seu domínio próprio se tiver)
 CSRF_TRUSTED_ORIGINS = [
     "https://plumix-production.up.railway.app",
     # "https://seu-dominio.com",
 ]
+# Cookies de segurança
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # --- Apps ---
 INSTALLED_APPS = [
@@ -79,16 +89,18 @@ WSGI_APPLICATION = "plumix.wsgi.application"
 # Ex.: postgresql://USER:PASS@HOST:PORT/DB?sslmode=require
 DEBUG = os.getenv("DEBUG", "0") == "1"
 
-db_env = "DATABASE_URL"
-db_url = os.getenv(db_env, "")
+import dj_database_url
+from urllib.parse import quote_plus
+
+import dj_database_url
+from urllib.parse import quote_plus
 
 DATABASES = {
-    "default": dj_database_url.config(
-        env=db_env,            # lê da variável DATABASE_URL (defina na Railway)
-        default=None,          # sem fallback automático aqui
+    'default': dj_database_url.config(
+       #default='postgresql://postgres:KHisXMTxzORwdvvIBfhMZDjATbqmzKEC@switchback.proxy.rlwy.net:33693/railway',
+       default='postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@yamanote.proxy.rlwy.net:11039/railway',
         conn_max_age=600,
-        # Em produção, exige SSL exceto quando host é interno da Railway
-        ssl_require=(not DEBUG) and ("railway.internal" not in db_url),
+       ssl_require=True
     )
 }
 
