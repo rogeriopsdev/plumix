@@ -85,20 +85,33 @@ WSGI_APPLICATION = 'plumix.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import os, dj_database_url
+from django.core.exceptions import ImproperlyConfigured
+
+DEBUG = os.getenv("DEBUG", "0") == "1"
+
 DATABASES = {
-    'default': {
-        #'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': BASE_DIR / 'db.sqlite3',
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("PGDATABASE", "plumix"),
-        "USER": os.getenv("PGUSER", "postgres"),
-        "PASSWORD": os.getenv("PGPASSWORD", "ellla81271657"),
-        "HOST": os.getenv("PGHOST", "localhost"),
-        "PORT": os.getenv("PGPORT", "5432"),
-        # Opcional: pequenos ajustes de conexão
-        # "OPTIONS": {"options": "-c statement_timeout=30000"}
-    }
+    "default": dj_database_url.config(
+        env="DATABASE_URL",
+        default=None,                 # não usa fallback em produção
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
 }
+
+if DATABASES["default"] is None:
+    if DEBUG:
+        # fallback local só em DEV
+        DATABASES["default"] = {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("PGDATABASE", "plumix"),
+            "USER": os.getenv("PGUSER", "postgres"),
+            "PASSWORD": os.getenv("PGPASSWORD", ""),
+            "HOST": os.getenv("PGHOST", "127.0.0.1"),
+            "PORT": os.getenv("PGPORT", "5432"),
+        }
+    else:
+        raise ImproperlyConfigured("DATABASE_URL não definido em produção.")
 TIME_ZONE = "America/Araguaina"
 USE_TZ = True
 
