@@ -85,7 +85,7 @@ DATABASES = {
         env=db_env,   # <- lê a URL do banco da variável DATABASE_URL
         # Fallback local (para DEV) se não houver DATABASE_URL:
         default=(
-            f"postgresql://{os.getenv('PGUSER', 'postgres')}:"
+            f"postgresql://{os.getenv('PGUSER', 'plumix')}:"
             f"{os.getenv('PGPASSWORD', 'ellla81271657')}@{os.getenv('PGHOST', '127.0.0.1')}:"
             f"{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'plumix')}"
         ),
