@@ -86,7 +86,7 @@ DATABASES = {
         # Fallback local (para DEV) se não houver DATABASE_URL:
         default=(
             f"postgresql://{os.getenv('PGUSER', 'postgres')}:"
-            f"{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', '127.0.0.1')}:"
+            f"{os.getenv('PGPASSWORD', 'ellla81271657')}@{os.getenv('PGHOST', '127.0.0.1')}:"
             f"{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'plumix')}"
         ),
         conn_max_age=600,
