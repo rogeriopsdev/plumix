@@ -77,7 +77,7 @@ WSGI_APPLICATION = "plumix.wsgi.application"
 
 # --- Banco de Dados (Railway usa DATABASE_URL) ---
 # Ex.: postgresql://USER:PASS@HOST:PORT/DB?sslmode=require
-db_env = "DATABASE_URL"
+db_env = "postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@postgres.railway.internal:5432/railway"
 db_url = os.getenv(db_env, "")
 
 DATABASES = {
