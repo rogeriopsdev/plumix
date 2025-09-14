@@ -77,25 +77,32 @@ WSGI_APPLICATION = "plumix.wsgi.application"
 
 # --- Banco de Dados (Railway usa DATABASE_URL) ---
 # Ex.: postgresql://USER:PASS@HOST:PORT/DB?sslmode=require
-db_env = "postgresql://postgres:TWzzgXwmSrdErPXOHCKshwiLwHiIGLrJ@postgres.railway.internal:5432/railway"
+DEBUG = os.getenv("DEBUG", "0") == "1"
+
+db_env = "DATABASE_URL"
 db_url = os.getenv(db_env, "")
 
 DATABASES = {
     "default": dj_database_url.config(
-        env=db_env,   # <- lê a URL do banco da variável DATABASE_URL
-        # Fallback local (para DEV) se não houver DATABASE_URL:
-        default=(
-            f"postgresql://{os.getenv('PGUSER', 'plumix')}:"
-            f"{os.getenv('PGPASSWORD', 'ellla81271657')}@{os.getenv('PGHOST', '127.0.0.1')}:"
-            f"{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'plumix')}"
-        ),
+        env=db_env,            # lê da variável DATABASE_URL (defina na Railway)
+        default=None,          # sem fallback automático aqui
         conn_max_age=600,
-        # Em produção: exige SSL EXCETO quando for host interno da Railway
-        ssl_require=(
-            (os.getenv("DEBUG", "0") != "1") and ("railway.internal" not in db_url)
-        ),
+        # Em produção, exige SSL exceto quando host é interno da Railway
+        ssl_require=(not DEBUG) and ("railway.internal" not in db_url),
     )
 }
+
+# Fallback LOCAL (apenas quando não houver DATABASE_URL)
+if DATABASES["default"] is None:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("PGDATABASE", "plumix"),
+        "USER": os.getenv("PGUSER", "postgres"),
+        "PASSWORD": os.getenv("PGPASSWORD", ""),
+        "HOST": os.getenv("PGHOST", "127.0.0.1"),  # local
+        "PORT": os.getenv("PGPORT", "5432"),
+        "OPTIONS": {"sslmode": "disable"} if DEBUG else {},  # evita erro de SSL no local
+    }
 
 # --- Localização / Tempo ---
 LANGUAGE_CODE = "pt-br"
